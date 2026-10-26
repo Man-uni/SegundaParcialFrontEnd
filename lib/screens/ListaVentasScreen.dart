@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:tp1_segunda_parcial_frontend/models/Venta.dart';
 import 'package:tp1_segunda_parcial_frontend/screens/DetalleVentaScreen.dart';
+import 'package:tp1_segunda_parcial_frontend/screens/LoginScreen.dart';
 import 'package:tp1_segunda_parcial_frontend/screens/NuevaVentaScreen.dart';
+import 'package:tp1_segunda_parcial_frontend/services/TokenStorage.dart';
 import 'package:tp1_segunda_parcial_frontend/services/VentaService.dart';
 import 'package:tp1_segunda_parcial_frontend/utils/format.dart';
 
@@ -23,14 +25,32 @@ class _ListaVentasState extends State<ListaVentasScreen> {
     _cargar();
   }
 
+  void _irAlLogin() {
+    TokenStorage.token = null;
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (_) => false,
+    );
+  }
+
   Future<void> _cargar() async {
     setState(() => _cargando = true);
-    final datos = await _service.listar();
-    if (!mounted) return;
-    setState(() {
-      _ventas = datos;
-      _cargando = false;
-    });
+    try {
+      final datos = await _service.listar();
+      if (!mounted) return;
+      setState(() {
+        _ventas = datos;
+        _cargando = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      if (e.toString().contains('401')) {
+        _irAlLogin();
+      } else {
+        setState(() => _cargando = false);
+      }
+    }
   }
 
   Future<void> _abrirNuevaVenta() async {
@@ -41,12 +61,19 @@ class _ListaVentasState extends State<ListaVentasScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Ventas'), backgroundColor: const Color(0xFF1B263B),foregroundColor: Colors.white,),
+      appBar: AppBar(
+        title: const Text('Ventas'),
+        backgroundColor: const Color(0xFF1B263B),
+        foregroundColor: Colors.white,
+        actions: [
+          IconButton(icon: const Icon(Icons.logout), onPressed: _irAlLogin, tooltip: 'Cerrar sesión'),
+        ],
+      ),
       body: _cargando
           ? const Center(child: CircularProgressIndicator())
           : ListView.separated(
               itemCount: _ventas.length,
-              separatorBuilder: (_, __) => const Divider(height: 1),
+              separatorBuilder: (_, _) => const Divider(height: 1),
               itemBuilder: (context, i) {
                 final v = _ventas[i];
                 return ListTile(

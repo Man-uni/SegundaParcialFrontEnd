@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:tp1_segunda_parcial_frontend/models/DetalleVenta.dart';
 import 'package:tp1_segunda_parcial_frontend/models/Venta.dart';
+import 'package:tp1_segunda_parcial_frontend/screens/LoginScreen.dart';
+import 'package:tp1_segunda_parcial_frontend/services/TokenStorage.dart';
 import 'package:tp1_segunda_parcial_frontend/services/VentaService.dart';
 import 'package:tp1_segunda_parcial_frontend/utils/format.dart';
 
@@ -81,6 +83,15 @@ class _NuevaVentaState extends State<NuevaVentaScreen> {
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
+      if (e.toString().contains('401')) {
+        TokenStorage.token = null;
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+          (_) => false,
+        );
+        return;
+      }
       _snack('Error al guardar: $e');
     } finally {
       if (mounted) setState(() => _guardando = false);
@@ -134,7 +145,7 @@ class _NuevaVentaState extends State<NuevaVentaScreen> {
                 ElevatedButton(
                   onPressed: _agregar,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1B263B),
+                    backgroundColor: const Color(0xFF8B2A3B),
                     foregroundColor: Colors.white,
                   ),
                   child: const Text('Agregar'),
