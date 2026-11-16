@@ -1,0 +1,1 @@
+{ "name": "comandas-api", "version": "1.0.0", "description": "API de practica (Comandas de restaurante, en memoria, JWT) - Parcial Flutter FP-UNA", "main": "server.js", "scripts": { "start": "node server.js" }, "license": "MIT" }
