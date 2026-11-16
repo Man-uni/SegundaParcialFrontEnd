@@ -62,7 +62,6 @@ class _MenuScreenState extends State<MenuScreen> {
           actions: [
             TextButton.icon(
               onPressed: () => _abrir(CarritoScreen(carrito: widget.carrito)),
-              icon: const Icon(Icons.shopping_cart, color: Colors.white),
               label: Text(
                 'Carrito ${widget.carrito.cantidadItems} · Gs. ${fmtGs(widget.carrito.total)}',
                 style: const TextStyle(color: Colors.white),
@@ -134,9 +133,9 @@ class _MenuScreenState extends State<MenuScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(fmtGs(p.precio)),
-                    IconButton(
-                      icon: Icon(p.disponible ? Icons.add_circle : Icons.block),
+                    TextButton(
                       onPressed: p.disponible ? () => widget.carrito.agregar(p) : null,
+                      child: p.disponible ? const Text('[+]') : const Text('[x]'),
                     ),
                   ],
                 ),

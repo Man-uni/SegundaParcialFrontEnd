@@ -77,14 +77,14 @@ class _CarritoScreenState extends State<CarritoScreen> {
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                IconButton(
-                                  icon: const Icon(Icons.remove_circle_outline),
+                                TextButton(
                                   onPressed: () => widget.carrito.quitarUno(l.plato),
+                                  child: const Text('-'),
                                 ),
                                 Text('${l.cantidad}'),
-                                IconButton(
-                                  icon: const Icon(Icons.add_circle_outline),
+                                TextButton(
                                   onPressed: () => widget.carrito.agregar(l.plato),
+                                  child: const Text('+'),
                                 ),
                                 SizedBox(
                                   width: 70,
