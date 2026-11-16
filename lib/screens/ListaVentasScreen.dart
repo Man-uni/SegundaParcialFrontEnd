@@ -17,6 +17,8 @@ class ListaVentasScreen extends StatefulWidget {
 class _ListaVentasState extends State<ListaVentasScreen> {
   final _service = VentaService();
   List<Venta> _ventas = [];
+  List<Venta> _ventasFiltradas = [];
+  final _ctrlCliente = TextEditingController();
   bool _cargando = true;
 
   @override
@@ -43,6 +45,7 @@ class _ListaVentasState extends State<ListaVentasScreen> {
         _ventas = datos;
         _cargando = false;
       });
+      _filtrarVentas();
     } catch (e) {
       if (!mounted) return;
       if (e.toString().contains('401')) {
@@ -58,6 +61,17 @@ class _ListaVentasState extends State<ListaVentasScreen> {
     if (guardado == true) _cargar();
   }
 
+  void _filtrarVentas() {
+    final cliente = _ctrlCliente.text.trim().toLowerCase();
+    setState(() {
+      if (cliente.isEmpty) {
+        setState(() => _ventasFiltradas = List.from(_ventas));
+      } else {
+        setState(() => _ventasFiltradas = _ventas.where((v) => v.cliente.toLowerCase().contains(cliente)).toList());
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -71,19 +85,32 @@ class _ListaVentasState extends State<ListaVentasScreen> {
       ),
       body: _cargando
           ? const Center(child: CircularProgressIndicator())
-          : ListView.separated(
-              itemCount: _ventas.length,
-              separatorBuilder: (_, _) => const Divider(height: 1),
-              itemBuilder: (context, i) {
-                final v = _ventas[i];
-                return ListTile(
-                  title: Text(v.fecha),
-                  subtitle: Text(v.cliente),
-                  trailing: Text('Gs. ${fmtGs(v.total)}'),
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetalleVentaScreen(venta: v)),
+          : Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: TextField(
+                      controller: _ctrlCliente,
+                      decoration: const InputDecoration(labelText: 'Filtrar por cliente'),
+                      onChanged: (_) => _filtrarVentas(),
                   ),
-                );
-              },
+                ),
+                Expanded(
+                  child: ListView.separated(
+                    itemCount: _ventasFiltradas.length,
+                    separatorBuilder: (_, _) => const Divider(height: 1),
+                    itemBuilder: (context, i) {
+                      final v = _ventasFiltradas[i];
+                      return ListTile(
+                        title: Text(v.fecha),
+                        subtitle: Text(v.cliente),
+                        trailing: Text('Gs. ${fmtGs(v.total)}'),
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => DetalleVentaScreen(venta: v))),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: _abrirNuevaVenta, backgroundColor: const Color(0xFF1B263B), foregroundColor: Colors.white, child: const Icon(Icons.add),),

@@ -5,6 +5,7 @@ import 'package:tp1_segunda_parcial_frontend/screens/LoginScreen.dart';
 import 'package:tp1_segunda_parcial_frontend/services/TokenStorage.dart';
 import 'package:tp1_segunda_parcial_frontend/services/VentaService.dart';
 import 'package:tp1_segunda_parcial_frontend/utils/format.dart';
+import 'package:tp1_segunda_parcial_frontend/models/Producto.dart';
 
 class NuevaVentaScreen extends StatefulWidget {
   const NuevaVentaScreen({super.key});
@@ -21,11 +22,13 @@ class _NuevaVentaState extends State<NuevaVentaScreen> {
   final _ctrlDesc    = TextEditingController();
   final _ctrlPrecio  = TextEditingController();
   final List<DetalleVenta> _detalles = [];
+  List<Producto> _productos = [];
   bool _guardando = false;
 
   @override
   void initState() {
     super.initState();
+    _cargarProductos();
     final now = DateTime.now();
     final hoy = '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}';
     _ctrlFecha = TextEditingController(text: hoy);
@@ -98,6 +101,30 @@ class _NuevaVentaState extends State<NuevaVentaScreen> {
     }
   }
 
+  void _irAlLogin() {
+    TokenStorage.token = null;
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (_) => false,
+    );
+  }
+
+  Future<void> _cargarProductos() async {
+    try {
+      final datos = await _service.listarproductos();
+      if (!mounted) return;
+      setState(() {
+        _productos = datos;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      if (e.toString().contains('401')) {
+        _irAlLogin();
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -117,19 +144,30 @@ class _NuevaVentaState extends State<NuevaVentaScreen> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Expanded(
+                  flex: 3,
+                  child: DropdownButtonFormField<String>(
+                    value: _ctrlDesc.text.isEmpty ? null : _ctrlDesc.text,
+                    isExpanded: true,
+                    decoration: const InputDecoration(labelText: 'Descripcion', border: OutlineInputBorder()),
+                    items: _productos.map((p) => DropdownMenuItem(value: p.descripcion, child: Text(p.descripcion))).toList(),
+                    onChanged: (v) {
+                      if (v != null) {
+                        setState(() {
+                          _ctrlDesc.text = v;
+                          final prod = _productos.firstWhere((p) => p.descripcion == v);
+                          _ctrlPrecio.text = prod.precio.toString();
+                        });
+                      }
+                    },
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Expanded(
                   flex: 2,
                   child: TextField(
                     controller: _ctrlCant,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(labelText: 'Cant.', border: OutlineInputBorder()),
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  flex: 3,
-                  child: TextField(
-                    controller: _ctrlDesc,
-                    decoration: const InputDecoration(labelText: 'Descripcion', border: OutlineInputBorder()),
                   ),
                 ),
                 const SizedBox(width: 6),
